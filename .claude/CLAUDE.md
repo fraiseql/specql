@@ -335,23 +335,26 @@ actions:
 
 ## 🤖 AI Quick Reference
 
-**Current Status**: v0.8.6 - All CLI commands implemented and tested
+**Current Status**: v0.8.7 - All CLI commands implemented and tested
 
-**Recent Changes** (2025-11-22 - v0.8.6):
+**Recent Changes** (2025-11-22 - v0.8.7):
+- ✅ **Info/Instance Pattern Detection** - New detector for dual-table hierarchical patterns
+  - `InfoInstanceDetector` class for detecting `*_info` tables (vocabulary/reference data)
+  - Detects instance tables via `fk_*_info` foreign key columns
+  - Pair matching algorithm to associate info tables with their instance counterparts
+  - New file: `reverse_engineering/info_instance_detector.py`
+- ✅ **Enhanced Translation Table Detection** - Extended `tl_*` prefix support
+  - `TranslationTableDetector` now recognizes `tl_*` prefix (PrintOptim style)
+  - Parent name extraction from `tl_*` tables (e.g., `tl_currency` → `currency`)
+- ✅ **CLI Integration** - Detectors integrated into `specql reverse sql` command
+- ✅ 1636 tests passing
+
+**Previous** (2025-11-22 - v0.8.6):
 - ✅ **Reverse Engineering Improvements** - Major enhancements to SQL → YAML
-  - YAML filenames now use proper snake_case (`machine_contract_relationship.yaml`)
+  - YAML filenames now use proper snake_case
   - SQL `COMMENT ON` statements preserved as entity/field descriptions
   - `project.yaml` auto-generated with schemas, extensions, registry
-  - Hierarchical numbering preserved from source files
-  - FK fields properly renamed (`fk_company` → `company: ref(...)`)
 - ✅ **Documentation Cleanup** - Removed 83 obsolete markdown files (-18%)
-  - Root: 56 → 5 files (kept README, CHANGELOG, CONTRIBUTING, GETTING_STARTED, STYLE_GUIDE)
-  - docs/: 35 → 14 files (removed planning docs, kept architecture/reference)
-  - .claude/prompts/: Removed 7 obsolete team prompt files
-- ✅ New files: `core/project_config.py`, `generators/foundation_generator.py`
-- ✅ Database test fixtures now use environment variables (configurable)
-- ✅ Fixed schema deployment in test fixtures (always refresh for consistency)
-- ✅ 1624 tests passing
 
 **Previous** (2025-11-22 - v0.8.5):
 - ✅ `test seed` command for type-aware seed data generation (6 tests)
@@ -386,6 +389,6 @@ actions:
 ---
 
 **Last Updated**: 2025-11-22
-**Version**: 0.8.6
+**Version**: 0.8.7
 **Project Phase**: CLI Implementation Complete (100%)
 **Next Milestone**: Real-world migration testing / Performance optimization

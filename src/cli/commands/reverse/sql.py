@@ -19,7 +19,28 @@ from cli.utils.error_handler import handle_cli_error
 from cli.utils.output import output as cli_output
 
 if TYPE_CHECKING:
+    from reverse_engineering.info_instance_detector import InfoInstanceDetector
     from reverse_engineering.table_parser import ParsedTable
+    from reverse_engineering.translation_detector import TranslationTableDetector
+
+
+def _to_snake_case(name: str) -> str:
+    """Convert CamelCase or PascalCase to snake_case.
+
+    Examples:
+        TLAdministrativeUnitInfo → tl_administrative_unit_info
+        DuplexMode → duplex_mode
+        OrganizationType → organization_type
+        already_snake_case → already_snake_case
+    """
+    import re
+
+    # Handle acronyms at the start (e.g., TLAdministrative -> TL_Administrative)
+    # Insert underscore before uppercase letters that follow lowercase letters
+    # or before uppercase letters followed by lowercase letters (for acronyms)
+    result = re.sub(r"([a-z])([A-Z])", r"\1_\2", name)
+    result = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", result)
+    return result.lower()
 
 
 def _table_to_filename(table_name: str) -> str:
@@ -28,9 +49,12 @@ def _table_to_filename(table_name: str) -> str:
     Examples:
         tb_machine_contract_relationship → machine_contract_relationship.yaml
         tv_user_view → user_view.yaml
+        TLAdministrativeUnitInfo → tl_administrative_unit_info.yaml
     """
-    # Remove tb_ or tv_ prefix and keep snake_case
+    # Remove tb_ or tv_ prefix
     name = table_name.removeprefix("tb_").removeprefix("tv_")
+    # Convert CamelCase to snake_case if needed
+    name = _to_snake_case(name)
     return f"{name}.yaml"
 
 
@@ -136,10 +160,55 @@ def _generate_hierarchical_path(
     hierarchical_dirs.sort(key=lambda x: len(x.split("_")[0]))
 
     # Construct path: entities/dir1/dir2/.../prefix_entity.yaml
+    # Use _to_snake_case to properly convert CamelCase entity names
     path_parts = (
-        ["entities"] + hierarchical_dirs + [f"{source_info.prefix}_{entity_name.lower()}.yaml"]
+        ["entities"]
+        + hierarchical_dirs
+        + [f"{source_info.prefix}_{_to_snake_case(entity_name)}.yaml"]
     )
     return Path(*path_parts)
+
+
+def _process_tables_with_detectors(
+    all_tables: list[tuple[SourceFileInfo, "ParsedTable"]],
+    info_detector: "InfoInstanceDetector",
+    translation_detector: "TranslationTableDetector",
+) -> tuple[list, list[tuple[SourceFileInfo, "ParsedTable"]], dict[str, str]]:
+    """Process tables with enhanced detectors to categorize them.
+
+    Returns:
+        (pairs, standalone_tables, translation_map)
+    """
+    # Step 1: Detect translation tables
+    translation_map = {}  # parent_name → tl_table
+    regular_tables = []
+
+    for source_info, table in all_tables:
+        if translation_detector._is_translation_table_name(table.table_name):
+            parent = translation_detector._extract_parent_table_name(table.table_name)
+            translation_map[parent] = table.table_name
+        else:
+            regular_tables.append((source_info, table))
+
+    # Step 2: Detect info/instance pairs
+    tables_for_detection = [
+        {"name": t.table_name, "columns": [c.name for c in t.columns]} for _, t in regular_tables
+    ]
+    pairs = info_detector.detect_pairs(tables_for_detection, translation_map)
+
+    # Step 3: Categorize tables
+    paired_table_names = set()
+    for pair in pairs:
+        paired_table_names.add(pair.info_table)
+        paired_table_names.add(pair.instance_table)
+
+    standalone_tables = [
+        (source_info, table)
+        for source_info, table in regular_tables
+        if table.table_name not in paired_table_names
+    ]
+
+    return pairs, standalone_tables, translation_map
 
 
 def _generate_project_yaml(
@@ -258,8 +327,10 @@ def sql(
         try:
             from reverse_engineering.entity_generator import EntityYAMLGenerator
             from reverse_engineering.fk_detector import ForeignKeyDetector
+            from reverse_engineering.info_instance_detector import InfoInstanceDetector
             from reverse_engineering.pattern_orchestrator import PatternDetectionOrchestrator
             from reverse_engineering.table_parser import SQLTableParser
+            from reverse_engineering.translation_detector import TranslationTableDetector
         except ImportError as e:
             cli_output.error(f"Missing reverse engineering dependency: {e}")
             cli_output.info("Install with: pip install specql[reverse]")
@@ -276,6 +347,10 @@ def sql(
         pattern_detector = PatternDetectionOrchestrator()
         fk_detector = ForeignKeyDetector()
         yaml_generator = EntityYAMLGenerator()
+
+        # Initialize new detectors for enhanced reverse engineering
+        info_detector = InfoInstanceDetector()
+        translation_detector = TranslationTableDetector()
 
         # Optionally load function parser
         func_parser = None
@@ -346,8 +421,16 @@ def sql(
                     fk_map[table_name] = []
                 fk_map[table_name].extend(fks)
 
+        # Process tables with enhanced detectors
+        pairs, standalone_tables, translation_map = _process_tables_with_detectors(
+            all_tables, info_detector, translation_detector
+        )
+
         # Summary
         cli_output.info(f"  Found {len(all_tables)} table(s), {len(all_functions)} function(s)")
+        cli_output.info(
+            f"  Detected {len(pairs)} info/instance pair(s), {len(standalone_tables)} standalone table(s)"
+        )
         if skipped_count > 0:
             cli_output.warning(f"  Skipped {skipped_count} unparseable statement(s)")
 

@@ -59,12 +59,40 @@ class TranslationTableDetector:
         )
 
     def _is_translation_table_name(self, table_name: str) -> bool:
-        """Check if table name follows translation pattern."""
-        return table_name.endswith("_translation")
+        """Check if table name follows any translation pattern."""
+        # Remove common prefixes
+        name = table_name.removeprefix("tb_").removeprefix("tv_")
+        name_lower = name.lower()
+
+        # NEW: Pattern 1 - tl_* prefix (PrintOptim style)
+        if name_lower.startswith("tl_"):
+            return True
+
+        # EXISTING: Pattern 2 - *_translation suffix
+        if name_lower.endswith("_translation"):
+            return True
+
+        return False
 
     def _extract_parent_table_name(self, table_name: str) -> str:
-        """Extract parent table name from translation table name."""
-        return table_name.replace("_translation", "")
+        """Extract parent table name from translation table name.
+
+        Examples:
+            tl_currency → currency
+            tl_administrative_unit_info → administrative_unit_info
+            tb_manufacturer_translation → tb_manufacturer
+        """
+        name_lower = table_name.lower()
+
+        # Pattern 1: tl_{entity} → {entity}
+        if name_lower.startswith("tl_"):
+            return table_name[3:]  # Remove "tl_" prefix
+
+        # Pattern 2: {entity}_translation → {entity}
+        if name_lower.endswith("_translation"):
+            return table_name[:-12]  # Remove "_translation"
+
+        return table_name
 
     def _find_fk_column(self, table: ParsedTable) -> str | None:
         """Find the foreign key column (fk_* pattern)."""

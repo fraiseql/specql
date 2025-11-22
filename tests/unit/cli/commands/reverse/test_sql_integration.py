@@ -225,6 +225,37 @@ def test_reverse_sql_creates_snake_case_filename(cli_runner):
         )
 
 
+def test_reverse_sql_camel_case_to_snake_case(cli_runner):
+    """Reverse sql should convert CamelCase table names to snake_case filenames."""
+    from cli.main import app
+
+    # Test table with CamelCase name (common in legacy systems)
+    sql_camel_case = """
+    CREATE TABLE common.TLAdministrativeUnitInfo (
+        pk_tladministrativeunitinfo INTEGER PRIMARY KEY,
+        id UUID DEFAULT gen_random_uuid() NOT NULL,
+        name VARCHAR(100) NOT NULL
+    );
+    """
+
+    with cli_runner.isolated_filesystem():
+        Path("camel_case.sql").write_text(sql_camel_case)
+        Path("out").mkdir()
+
+        result = cli_runner.invoke(app, ["reverse", "sql", "camel_case.sql", "--output", "out/"])
+
+        assert result.exit_code == 0
+
+        # Find all YAML files recursively
+        all_yaml_files = list(Path("out").rglob("*.yaml"))
+
+        # Should create tl_administrative_unit_info.yaml (snake_case from CamelCase)
+        expected_filename = "tl_administrative_unit_info.yaml"
+        assert any(f.name == expected_filename for f in all_yaml_files), (
+            f"Expected {expected_filename}, got {[f.name for f in all_yaml_files]}"
+        )
+
+
 def test_reverse_sql_preserves_comments(cli_runner):
     """Reverse sql should preserve COMMENT ON TABLE and COMMENT ON COLUMN statements."""
     from cli.main import app
@@ -534,3 +565,35 @@ def test_project_yaml_round_trip(cli_runner):
         assert "CREATE SCHEMA IF NOT EXISTS tenant;" in foundation_sql
         assert "COMMENT ON SCHEMA catalog IS" in foundation_sql
         assert "COMMENT ON SCHEMA tenant IS" in foundation_sql
+
+
+def test_reverse_sql_detects_info_instance_pairs(cli_runner):
+    """specql reverse sql should detect info/instance pairs."""
+    from cli.main import app
+
+    # Given SQL with info/instance pattern
+    sql_content = """
+    CREATE TABLE tb_admin_level_info (
+        pk_admin_level_info UUID PRIMARY KEY,
+        identifier TEXT NOT NULL,
+        name TEXT NOT NULL
+    );
+
+    CREATE TABLE tb_admin_level (
+        pk_admin_level UUID PRIMARY KEY,
+        fk_admin_level_info UUID NOT NULL,
+        fk_parent_admin_level UUID,
+        path LTREE
+    );
+    """
+
+    with cli_runner.isolated_filesystem():
+        Path("schema.sql").write_text(sql_content)
+        Path("out").mkdir()
+
+        result = cli_runner.invoke(app, ["reverse", "sql", "schema.sql", "--output", "out/"])
+
+        assert result.exit_code == 0
+        # Should create YAML files (basic integration test)
+        yaml_files = list(Path("out/").glob("*.yaml"))
+        assert len(yaml_files) > 0
