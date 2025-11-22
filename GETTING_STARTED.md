@@ -319,17 +319,20 @@ confiture migrate up
 ## Quick Reference
 
 ```bash
+# Validate YAML syntax
+specql validate entities/*.yaml
+
 # Generate schema
 specql generate entities/*.yaml
 
-# Validate YAML
-specql validate entities/*.yaml
-
-# Show schema diff
-specql diff entities/contact.yaml
-
-# Generate with frontend code
+# Generate with mutation impacts
 specql generate entities/*.yaml --with-impacts
+
+# Dry-run (preview without writing)
+specql generate entities/*.yaml --dry-run
+
+# Reverse engineer from SQL
+specql reverse sql db/*.sql -o entities/
 ```
 
 ---

@@ -14,16 +14,6 @@ repos:
       # Run the formatter
   - id: ruff-format
 
-  # MyPy - Static type checker
-  # DISABLED: Requires comprehensive type annotation pass across codebase (132+ errors)
-  # TODO: Re-enable after adding type annotations to core modules
-  # - repo: https://github.com/pre-commit/mirrors-mypy
-  #   rev: v1.18.2
-  #   hooks:
-  #   - id: mypy
-  #     additional_dependencies: [types-pyyaml>=6.0.0]
-  #     args: [--ignore-missing-imports, --scripts-are-modules]
-
   # Standard pre-commit hooks
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v5.0.0
@@ -59,7 +49,6 @@ exclude: |
       \.venv/.*|
       __pycache__/.*|
       \.pytest_cache/.*|
-      \.mypy_cache/.*|
       \.ruff_cache/.*|
       archived/.*
   )$

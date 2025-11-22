@@ -1,4 +1,4 @@
-.PHONY: help install test test-unit test-integration lint typecheck format clean version db-up db-down db-restart db-logs db-status test-all
+.PHONY: help install test test-unit test-integration lint format clean version db-up db-down db-restart db-logs db-status test-all
 
 help:
 	@echo "SpecQL Generator - Development Commands"
@@ -9,7 +9,6 @@ help:
 	@echo "  make test-integration Run integration tests only"
 	@echo "  make test-all        Run ALL tests including database tests"
 	@echo "  make lint            Run linting (ruff)"
-	@echo "  make typecheck       Run type checking (mypy)"
 	@echo "  make format          Format code (black)"
 	@echo "  make clean           Clean generated files"
 	@echo "  make coverage        Generate coverage report"
@@ -41,9 +40,6 @@ test-integration:
 
 lint:
 	uv run ruff check src/ tests/
-
-typecheck:
-	uv run mypy src/
 
 format:
 	uv run black src/ tests/

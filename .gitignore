@@ -43,6 +43,7 @@ htmlcov/
 generated/
 !generated/.gitkeep
 !generated/README.md
+db/schema/
 
 # OS
 .DS_Store

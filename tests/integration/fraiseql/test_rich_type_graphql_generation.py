@@ -20,9 +20,7 @@ class TestRichTypeGraphQLGeneration:
         entity_def = parser.parse(contact_path.read_text())
 
         # Convert to Entity for orchestrator
-        from tests.integration.stdlib.test_stdlib_contact_generation import (
-            convert_entity_definition_to_entity,
-        )
+        from cli.orchestrator import convert_entity_definition_to_entity
 
         entity = convert_entity_definition_to_entity(entity_def)
 
@@ -51,9 +49,7 @@ class TestRichTypeGraphQLGeneration:
         contact_path = Path("stdlib/crm/contact.yaml")
         entity_def = parser.parse(contact_path.read_text())
 
-        from tests.integration.stdlib.test_stdlib_contact_generation import (
-            convert_entity_definition_to_entity,
-        )
+        from cli.orchestrator import convert_entity_definition_to_entity
 
         entity = convert_entity_definition_to_entity(entity_def)
 
@@ -73,9 +69,7 @@ class TestRichTypeGraphQLGeneration:
         contact_path = Path("stdlib/crm/contact.yaml")
         entity_def = parser.parse(contact_path.read_text())
 
-        from tests.integration.stdlib.test_stdlib_contact_generation import (
-            convert_entity_definition_to_entity,
-        )
+        from cli.orchestrator import convert_entity_definition_to_entity
 
         entity = convert_entity_definition_to_entity(entity_def)
 

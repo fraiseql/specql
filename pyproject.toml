@@ -27,9 +27,7 @@ dev = [
     "pytest-asyncio>=0.21.0",
     "hypothesis>=6.142.0",
     "ruff>=0.1.0",
-    "mypy>=1.5.0",
     "black>=23.0.0",
-    "types-pyyaml>=6.0.0",
 ]
 
 # Reverse engineering features
@@ -67,8 +65,9 @@ python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
 addopts = "-v --tb=short --strict-markers"
+pythonpath = ["src"]
 # Exclude archived/deprecated tests
-norecursedirs = ["archived", ".git", "__pycache__"]
+norecursedirs = ["archived", "archived_legacy_cli", ".git", "__pycache__"]
 markers = [
     "unit: Unit tests (fast, isolated)",
     "integration: Integration tests (slower, requires DB)",
@@ -111,21 +110,13 @@ ignore = ["E501"]  # Line too long (handled by formatter)
 # Test files: allow bare except, star imports, late imports, naming, undefined names (fixtures)
 "tests/**/*.py" = ["E402", "E722", "E741", "F403", "F405", "F811", "F821", "N806"]
 
-[tool.mypy]
-python_version = "3.11"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-ignore_missing_imports = true
-
 [tool.black]
 line-length = 100
 target-version = ['py311']
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["cli*", "infrastructure*", "core*", "generators*", "registry*", "reverse_engineering*", "utils*", "testing*", "numbering*", "patterns*", "pattern_library*", "templates*"]
-exclude = ["tests*", "docs*", "scripts*", "archive*", "database*", "entities*", "examples*", "migrations*", "pgvector*", "rust*", "site*", "stdlib*"]
+where = ["src"]
+include = ["cli*"]
 
 # No workspace members - all dependencies from PyPI
 

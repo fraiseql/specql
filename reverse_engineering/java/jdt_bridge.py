@@ -10,7 +10,15 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from py4j.java_gateway import GatewayParameters, JavaGateway
+# py4j is optional - we use mock implementation if not available
+try:
+    from py4j.java_gateway import GatewayParameters, JavaGateway
+
+    PY4J_AVAILABLE = True
+except ImportError:
+    PY4J_AVAILABLE = False
+    JavaGateway = None  # type: ignore
+    GatewayParameters = None  # type: ignore
 
 from utils.logger import get_logger
 
@@ -27,6 +35,12 @@ class JDTBridge:
 
     def _start_jdt_server(self):
         """Start JDT Java process"""
+        # If py4j not available, go directly to mock mode
+        if not PY4J_AVAILABLE:
+            logger.info("py4j not available, using mock implementation for Java parsing")
+            self._use_mock_implementation()
+            return
+
         try:
             # Find lib/jdt directory relative to project root
             # Assume we're running from project root or a subdirectory
