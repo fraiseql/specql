@@ -32,6 +32,21 @@ def detect_project_type(directory: Path) -> str:
             return "typescript"
     if (directory / "requirements.txt").exists():
         return "python"
+
+    # Check for SQL-based projects (FraiseQL, raw SQL schemas)
+    sql_dirs = ["db", "schema", "sql", "database"]
+    for sql_dir in sql_dirs:
+        sql_path = directory / sql_dir
+        if sql_path.exists() and sql_path.is_dir():
+            sql_files = list(sql_path.glob("**/*.sql"))
+            if sql_files:
+                return "sql"
+
+    # Also check for SQL files in root
+    root_sql_files = list(directory.glob("*.sql"))
+    if root_sql_files:
+        return "sql"
+
     return "unknown"
 
 
@@ -72,6 +87,10 @@ FRAMEWORK_HANDLERS = {
     "typescript": {
         "pattern": "**/*.ts",
         "handler": "typescript",
+    },
+    "sql": {
+        "pattern": "**/*.sql",
+        "handler": "sql",
     },
 }
 
@@ -179,7 +198,7 @@ def project(directory, output_dir, framework, preview, **kwargs):
 
         if project_type == "unknown":
             output.warning("Could not detect project type. Use --framework to specify explicitly.")
-            output.info("Supported frameworks: django, python, rust, prisma, typescript")
+            output.info("Supported frameworks: django, python, rust, prisma, typescript, sql")
             raise click.ClickException("Unknown project type")
 
         output_path = Path(output_dir)

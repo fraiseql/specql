@@ -180,3 +180,60 @@ class Contact(models.Model):
 
         assert result.exit_code == 0
         assert (output_dir / "contact.yaml").exists()
+
+
+def test_reverse_sql_project(runner):
+    """Reverse engineering a SQL project processes .sql files."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create SQL project structure (FraiseQL-style)
+        project = Path(tmpdir) / "myproject"
+        project.mkdir()
+
+        db_dir = project / "db" / "schema"
+        db_dir.mkdir(parents=True)
+        schema = db_dir / "contact.sql"
+        schema.write_text("""
+CREATE TABLE crm.tb_contact (
+    pk_contact SERIAL PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid(),
+    email TEXT NOT NULL,
+    name TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+""")
+
+        output_dir = Path(tmpdir) / "output"
+        output_dir.mkdir()
+
+        result = runner.invoke(app, ["reverse", "project", str(project), "-o", str(output_dir)])
+
+        assert result.exit_code == 0
+        assert "sql" in result.output.lower()  # Detected as SQL project
+        assert (output_dir / "contact.yaml").exists()
+
+
+def test_reverse_sql_project_root_files(runner):
+    """Reverse engineering a SQL project with .sql files in root."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create SQL project with files in root
+        project = Path(tmpdir) / "myproject"
+        project.mkdir()
+
+        schema = project / "schema.sql"
+        schema.write_text("""
+CREATE TABLE public.tb_user (
+    pk_user SERIAL PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid(),
+    email TEXT NOT NULL,
+    username TEXT
+);
+""")
+
+        output_dir = Path(tmpdir) / "output"
+        output_dir.mkdir()
+
+        result = runner.invoke(app, ["reverse", "project", str(project), "-o", str(output_dir)])
+
+        assert result.exit_code == 0
+        assert "sql" in result.output.lower()
+        assert (output_dir / "user.yaml").exists()
