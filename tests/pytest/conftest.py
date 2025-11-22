@@ -74,42 +74,32 @@ def test_db_connection(db_config):
 @pytest.fixture(scope="session")
 def deploy_test_schema(test_db_connection):
     """
-    Deploy test database schema if not already present.
+    Deploy test database schema, always refreshing to ensure consistency.
 
     This fixture automatically loads:
     - setup_test_db.sql (schemas, tables, types, helper functions)
     - contact_actions.sql (Contact entity actions)
 
-    Runs once per test session.
+    Runs once per test session. Forces a reload to handle schema drift.
     """
+    print("\n🔧 Deploying test database schema...")
+
+    # Load setup_test_db.sql (which drops and recreates schemas)
+    test_dir = Path(__file__).parent
+    setup_sql = test_dir / "setup_test_db.sql"
+    actions_sql = test_dir / "contact_actions.sql"
+
     with test_db_connection.cursor() as cur:
-        # Check if the create_contact function exists (more specific than just schema)
-        cur.execute(
-            "SELECT EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid "
-            "WHERE n.nspname = 'app' AND p.proname = 'create_contact')"
-        )
-        functions_exist = cur.fetchone()[0]
+        if setup_sql.exists():
+            print("  📄 Loading setup_test_db.sql...")
+            cur.execute(setup_sql.read_text())
 
-        if not functions_exist:
-            print("\n🔧 Deploying test database schema...")
+        if actions_sql.exists():
+            print("  📄 Loading contact_actions.sql...")
+            cur.execute(actions_sql.read_text())
 
-            # Load setup_test_db.sql
-            test_dir = Path(__file__).parent
-            setup_sql = test_dir / "setup_test_db.sql"
-            actions_sql = test_dir / "contact_actions.sql"
-
-            if setup_sql.exists():
-                print("  📄 Loading setup_test_db.sql...")
-                cur.execute(setup_sql.read_text())
-
-            if actions_sql.exists():
-                print("  📄 Loading contact_actions.sql...")
-                cur.execute(actions_sql.read_text())
-
-            test_db_connection.commit()
-            print("  ✅ Schema deployed successfully")
-        else:
-            print("\n✅ Test schema already deployed")
+        test_db_connection.commit()
+        print("  ✅ Schema deployed successfully")
 
     yield
 

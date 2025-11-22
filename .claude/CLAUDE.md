@@ -171,7 +171,12 @@ specql (v2.0)
 ├── init project|entity|registry  # Scaffolding (Beta)
 ├── workflow migrate|sync         # Multi-step automation (Beta)
 ├── diff                          # Schema diffing (Stable - 7 tests)
-└── docs                          # Documentation generation (Stable - 17 tests)
+├── docs                          # Documentation generation (Stable - 17 tests)
+│
+└── test <subcommand>             # Testing tools (Stable - 19 tests)
+    ├── seed <entities>           # Generate seed data SQL
+    ├── generate <entities>       # Auto-generate pgTAP/pytest tests
+    └── reverse <test-files>      # Reverse engineer existing tests
 ```
 
 **Usage Examples**:
@@ -193,6 +198,12 @@ specql init entity Contact --schema=crm
 
 # Show schema diff
 specql diff entities/contact.yaml --compare db/schema/10_tables/contact.sql
+
+# Generate test seed data
+specql test seed entities/*.yaml -o seeds/ --deterministic
+
+# Auto-generate pgTAP/pytest tests
+specql test generate entities/*.yaml -o tests/ --with-seed
 ```
 
 **Key Files** (`src/cli/`):
@@ -324,19 +335,36 @@ actions:
 
 ## 🤖 AI Quick Reference
 
-**Current Status**: ~100% Complete - All CLI commands implemented and tested
+**Current Status**: v0.8.6 - All CLI commands implemented and tested
 
-**Recent Changes** (2025-11-21):
+**Recent Changes** (2025-11-22 - v0.8.6):
+- ✅ **Reverse Engineering Improvements** - Major enhancements to SQL → YAML
+  - YAML filenames now use proper snake_case (`machine_contract_relationship.yaml`)
+  - SQL `COMMENT ON` statements preserved as entity/field descriptions
+  - `project.yaml` auto-generated with schemas, extensions, registry
+  - Hierarchical numbering preserved from source files
+  - FK fields properly renamed (`fk_company` → `company: ref(...)`)
+- ✅ **Documentation Cleanup** - Removed 83 obsolete markdown files (-18%)
+  - Root: 56 → 5 files (kept README, CHANGELOG, CONTRIBUTING, GETTING_STARTED, STYLE_GUIDE)
+  - docs/: 35 → 14 files (removed planning docs, kept architecture/reference)
+  - .claude/prompts/: Removed 7 obsolete team prompt files
+- ✅ New files: `core/project_config.py`, `generators/foundation_generator.py`
+- ✅ Database test fixtures now use environment variables (configurable)
+- ✅ Fixed schema deployment in test fixtures (always refresh for consistency)
+- ✅ 1624 tests passing
+
+**Previous** (2025-11-22 - v0.8.5):
+- ✅ `test seed` command for type-aware seed data generation (6 tests)
+- ✅ `test generate` command for auto-generating pgTAP/pytest tests (6 tests)
+- ✅ `test reverse` command for reverse engineering existing tests (7 tests)
+
+**Previous** (2025-11-21 - v0.8.4):
 - ✅ `docs` command implemented with multi-format support (17 tests)
 - ✅ `reverse java` command integrated with JPA/Hibernate parser (17 tests)
 - ✅ `reverse sql` command integrated with pglast (17 tests)
 - ✅ `reverse python` command integrated with PythonASTParser (19 tests)
 - ✅ `reverse typescript` command integrated with Prisma parser (17 tests)
 - ✅ `reverse rust` command integrated with Diesel/SeaORM parsers (16 tests)
-- ✅ `validate` command implemented (16 tests)
-- ✅ `generate` command connected to CLIOrchestrator
-- ✅ `diff` command implemented (7 tests)
-- ✅ 159 CLI tests passing
 
 **Test Command**: `make test` or `uv run pytest tests/unit/cli/ -v`
 
@@ -357,6 +385,7 @@ actions:
 
 ---
 
-**Last Updated**: 2025-11-21
-**Project Phase**: CLI Implementation Complete (~100%)
-**Next Milestone**: Stabilize Beta commands (patterns, init, workflow) / Production hardening
+**Last Updated**: 2025-11-22
+**Version**: 0.8.6
+**Project Phase**: CLI Implementation Complete (100%)
+**Next Milestone**: Real-world migration testing / Performance optimization

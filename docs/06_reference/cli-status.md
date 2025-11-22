@@ -31,9 +31,11 @@
 | **workflow** | migrate | Stable | 12 | Full pipeline |
 | | sync | Stable | 5 | Incremental sync |
 | **diff** | - | Stable | 6 | Schema comparison |
+| **test** | seed | Stable | 6 | Type-aware seed data generation |
+| | generate | Stable | 6 | Auto-generate pgTAP/pytest tests |
+| | reverse | Stable | 7 | Reverse engineer existing tests |
 | **docs** | - | Planned | 0 | Documentation generation |
 | **analyze** | - | Planned | 0 | Migration analysis |
-| **test** | - | Planned | 0 | Testing framework |
 | **cache** | - | Planned | 0 | Cache management |
 
 ---
@@ -180,6 +182,46 @@ Real change detection and incremental regeneration:
 
 **Test count**: 8 unit + 5 integration tests
 
+### `specql test seed`
+
+**Status**: Stable
+
+Generate type-aware seed data SQL for testing:
+- Deterministic mode for reproducible fixtures (`--deterministic`)
+- Multiple output formats: SQL, JSON, CSV (`--format`)
+- Scenario parameter for test UUID generation (`--scenario`)
+- FK dependency ordering for multi-entity seeding
+- Preview mode with `--dry-run`
+
+**Test count**: 6 unit tests
+
+### `specql test generate`
+
+**Status**: Stable
+
+Auto-generate test files from SpecQL entities:
+- pgTAP (PostgreSQL) test generation
+- pytest (Python) test generation
+- Both test types simultaneously (`--type both`)
+- CRUD, action, and constraint test generation
+- Seed data generation alongside tests (`--with-seed`)
+
+**Test count**: 6 unit tests
+
+### `specql test reverse`
+
+**Status**: Stable
+
+Reverse engineer existing tests to SpecQL test specs:
+- pgTAP test parsing
+- pytest test parsing
+- Jest/Vitest test parsing
+- Auto-detection of test type (`--type auto`)
+- Preview mode with `--preview`
+- Outputs SpecQL test-spec.yaml format
+
+**Test count**: 7 unit tests
+
 ---
 
 ## Planned Commands
@@ -197,13 +239,6 @@ Analyze existing codebase and generate migration report. Will include:
 - Complexity scores
 - Migration recommendations
 - Effort estimates
-
-### `specql test`
-
-Testing framework for SpecQL entities. Will support:
-- Fixture-based testing
-- Equivalence validation
-- Action logic testing
 
 ### `specql cache`
 
@@ -225,11 +260,20 @@ uv run pytest tests/unit/cli/commands/test_validate.py -v
 uv run pytest tests/unit/cli/commands/test_reverse.py -v
 ```
 
-**Total CLI tests**: 197 passing
+**Total CLI tests**: 216 passing
 
 ---
 
 ## Recent Changes
+
+### 2025-11-22 (Test CLI Command Group)
+
+- Implemented `specql test seed` for type-aware seed data generation
+- Implemented `specql test generate` for auto-generating pgTAP/pytest tests
+- Implemented `specql test reverse` for reverse engineering existing tests
+- 19 unit tests added across 3 test files
+- Updated test status from Planned to Stable
+- Integrated with existing `testing/` module infrastructure
 
 ### 2025-11-21 (Phase 3 - Python Reverse Engineering)
 
@@ -274,4 +318,4 @@ To implement a planned command:
 
 ---
 
-**Last Updated**: 2025-11-21
+**Last Updated**: 2025-11-22

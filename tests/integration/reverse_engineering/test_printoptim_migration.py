@@ -45,7 +45,7 @@ class TestPrintOptimMigration:
             REFERENCES management.tb_user(pk_user);
         """)
 
-        output_dir = tmp_path / "entities"
+        output_dir = tmp_path / "output"
 
         runner = CliRunner()
         result = runner.invoke(app, ["reverse", "sql", str(sql_file), "-o", str(output_dir)])
@@ -53,8 +53,11 @@ class TestPrintOptimMigration:
         assert result.exit_code == 0
 
         # The entity should be named "manufacturer" (lowercased from tb_manufacturer)
-        yaml_path = output_dir / "manufacturer.yaml"
-        assert yaml_path.exists()
+        # Files are now generated in entities/ subdirectory with hierarchical paths
+        yaml_files = list(output_dir.glob("**/*.yaml"))
+        manufacturer_files = [f for f in yaml_files if "manufacturer" in f.name.lower() and "project" not in f.name.lower()]
+        assert len(manufacturer_files) > 0, f"Expected manufacturer.yaml, found: {yaml_files}"
+        yaml_path = manufacturer_files[0]
 
         yaml_content = yaml_path.read_text()
 

@@ -45,10 +45,17 @@ class PipelineOrchestrator:
                 )
 
                 if result.exit_code == 0:
-                    # Find generated YAML files
-                    yaml_files = list(output_dir.glob("*.yaml"))
-                    reversed_files.extend(yaml_files)
-                    for yaml_file in yaml_files:
+                    # Find generated YAML files (search recursively, excluding project.yaml and registry)
+                    yaml_files = list(output_dir.glob("**/*.yaml"))
+                    # Filter out project.yaml and registry files
+                    entity_files = [
+                        f for f in yaml_files
+                        if f.name != "project.yaml"
+                        and "registry" not in f.parts
+                        and "domain_registry" not in f.name
+                    ]
+                    reversed_files.extend(entity_files)
+                    for yaml_file in entity_files:
                         output.info(f"  📄 {file_path.name} → {yaml_file.name}")
                 else:
                     error_msg = f"Failed to reverse {file_path.name}: {result.output}"
