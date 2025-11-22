@@ -19,7 +19,7 @@ uv pip install specql
 | `reverse` | Stable | Reverse engineer to YAML |
 | `patterns` | Stable | Pattern detection and application |
 | `init` | Stable | Scaffolding for new projects |
-| `workflow` | Beta | Multi-step automation |
+| `workflow` | Stable | Multi-step automation |
 | `diff` | Planned | Schema diffing |
 | `docs` | Planned | Documentation generation |
 | `analyze` | Planned | Migration analysis |

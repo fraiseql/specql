@@ -2,8 +2,10 @@
 Diff command - Compare SpecQL YAML with existing SQL schema.
 """
 
-import click
 from pathlib import Path
+
+import click
+
 from cli.base import common_options
 from cli.utils.error_handler import handle_cli_error
 from cli.utils.output import output
@@ -48,10 +50,10 @@ def diff(yaml_file, compare, output_format, ignore_comments, **kwargs):
         if ignore_comments:
             # Strip comments
             generated_lines = [
-                l for l in generated_sql.splitlines() if not l.strip().startswith("--")
+                line for line in generated_sql.splitlines() if not line.strip().startswith("--")
             ]
             existing_lines = [
-                l for l in existing_sql.splitlines() if not l.strip().startswith("--")
+                line for line in existing_sql.splitlines() if not line.strip().startswith("--")
             ]
         else:
             generated_lines = generated_sql.splitlines()

@@ -128,9 +128,10 @@ def generate(
 
         # Write performance metrics if requested
         if performance and performance_output:
-            from utils.performance_monitor import get_performance_monitor
-            from pathlib import Path
             import json
+            from pathlib import Path
+
+            from utils.performance_monitor import get_performance_monitor
 
             perf_monitor = get_performance_monitor()
             metrics = perf_monitor.get_metrics()

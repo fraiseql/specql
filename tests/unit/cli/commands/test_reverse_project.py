@@ -237,3 +237,72 @@ CREATE TABLE public.tb_user (
         assert result.exit_code == 0
         assert "sql" in result.output.lower()
         assert (output_dir / "user.yaml").exists()
+
+
+def test_reverse_project_mixed_languages(runner):
+    """Handles projects with multiple languages gracefully."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create mixed project
+        project = Path(tmpdir) / "mixed_project"
+        project.mkdir()
+
+        # Add Python file
+        models = project / "models.py"
+        models.write_text("""
+from django.db import models
+
+class Contact(models.Model):
+    email = models.EmailField()
+""")
+
+        # Add SQL file
+        schema = project / "schema.sql"
+        schema.write_text("""
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username TEXT
+);
+""")
+
+        output_dir = Path(tmpdir) / "output"
+        output_dir.mkdir()
+
+        result = runner.invoke(app, ["reverse", "project", str(project), "-o", str(output_dir)])
+
+        assert result.exit_code == 0
+        # Should process files it can handle
+        assert (output_dir / "contact.yaml").exists() or (output_dir / "users.yaml").exists()
+
+
+def test_reverse_project_empty_directory(runner):
+    """Handles empty project directory by detecting as unknown."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Create empty project
+        project = Path(tmpdir) / "empty_project"
+        project.mkdir()
+
+        output_dir = Path(tmpdir) / "output"
+        output_dir.mkdir()
+
+        result = runner.invoke(app, ["reverse", "project", str(project), "-o", str(output_dir)])
+
+        # Should fail because project type cannot be detected
+        assert result.exit_code != 0
+        assert "unknown" in result.output.lower() or "could not detect" in result.output.lower()
+
+
+def test_reverse_project_invalid_framework(runner):
+    """Shows error for invalid framework specification."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        project = Path(tmpdir) / "project"
+        project.mkdir()
+
+        output_dir = Path(tmpdir) / "output"
+        output_dir.mkdir()
+
+        result = runner.invoke(
+            app, ["reverse", "project", str(project), "--framework=invalid", "-o", str(output_dir)]
+        )
+
+        assert result.exit_code != 0
+        assert "invalid" in result.output.lower() or "unknown" in result.output.lower()

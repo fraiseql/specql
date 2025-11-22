@@ -310,3 +310,34 @@ fields:
             # Verify state contains hash
             state = json.loads(state_file.read_text())
             assert str(contact) in state
+
+    def test_sync_empty_directory(self, runner):
+        """Sync handles empty directory gracefully."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            entities = Path(tmpdir) / "entities"
+            entities.mkdir()
+
+            result = runner.invoke(app, ["workflow", "sync", str(entities)])
+
+            assert result.exit_code == 0
+            assert "No changes detected" in result.output or "0 files" in result.output
+
+    def test_sync_invalid_yaml_file(self, runner):
+        """Sync handles invalid YAML files gracefully."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            entities = Path(tmpdir) / "entities"
+            entities.mkdir()
+
+            # Create invalid YAML
+            invalid_yaml = entities / "invalid.yaml"
+            invalid_yaml.write_text("""
+entity: Test
+fields:
+  - invalid: list: syntax
+  name: text
+""")
+
+            result = runner.invoke(app, ["workflow", "sync", str(entities)])
+
+            assert result.exit_code == 0  # Should not crash
+            assert "error" in result.output.lower() or "failed" in result.output.lower()

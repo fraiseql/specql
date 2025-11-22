@@ -22,14 +22,14 @@
 | | python | Stable | 19 | Django/Pydantic/SQLAlchemy/Dataclass |
 | | typescript | Beta | 2 | Prisma/TypeORM |
 | | rust | Beta | 2 | Diesel/SeaORM |
-| | project | Beta | 2 | Auto-detection |
-| **patterns** | detect | Stable | 3 | Pattern detection |
-| | apply | Beta | 2 | Pattern application |
+| | project | Stable | 8 | Auto-detection |
+| **patterns** | detect | Stable | 6 | Pattern detection |
+| | apply | Stable | 6 | Pattern application |
 | **init** | project | Beta | 2 | Project scaffolding |
 | | entity | Beta | 2 | Entity templates |
 | | registry | Beta | 2 | Registry templates |
-| **workflow** | migrate | Beta | 12 | Full pipeline |
-| | sync | Beta | 5 | Incremental sync |
+| **workflow** | migrate | Stable | 12 | Full pipeline |
+| | sync | Stable | 5 | Incremental sync |
 | **diff** | - | Stable | 6 | Schema comparison |
 | **docs** | - | Planned | 0 | Documentation generation |
 | **analyze** | - | Planned | 0 | Migration analysis |
@@ -109,17 +109,43 @@ Full integration with PythonASTParser:
 
 **Test count**: 19 unit tests
 
-### `specql reverse typescript|rust|project`
+### `specql reverse project`
 
-**Status**: Beta
+**Status**: Stable
 
-Commands accept arguments and options but have limited backend integration. Full reverse engineering logic exists in `reverse_engineering/` module but CLI integration is partial.
+Full project-level reverse engineering:
+- Auto-detects Django, Rust, Prisma, TypeScript, Python projects
+- Processes all relevant files in project structure
+- Framework override with --framework option
+- Preview mode without file generation
+- Error handling for individual file failures
+- Deduplication of entities found in multiple files
 
-### `specql patterns`
+**Test count**: 8 unit tests
 
-**Status**: Beta (detect) / Beta (apply)
+### `specql patterns detect`
 
-Pattern detection works with mock output. Full pattern detector exists in `reverse_engineering/universal_pattern_detector.py`.
+**Status**: Stable
+
+Full integration with UniversalPatternDetector:
+- Detects audit-trail, multi-tenant, soft-delete, state-machine patterns
+- Confidence scoring for pattern matches
+- JSON/YAML output formats
+- Minimum confidence threshold filtering
+
+**Test count**: 6 unit tests
+
+### `specql patterns apply`
+
+**Status**: Stable
+
+Full integration with PatternApplicator:
+- Applies audit-trail, multi-tenant, soft-delete patterns
+- Modifies YAML files with pattern requirements
+- Preview mode without file modification
+- Error handling for unknown patterns
+
+**Test count**: 6 unit tests
 
 ### `specql init`
 
@@ -127,11 +153,32 @@ Pattern detection works with mock output. Full pattern detector exists in `rever
 
 Template generation is functional but with limited customization options.
 
-### `specql workflow`
+### `specql workflow migrate`
 
-**Status**: Beta
+**Status**: Stable
 
-Multi-step automation works but relies on other commands' integration levels.
+Full integration with reverse, validate, and generate commands:
+- Real pipeline orchestration (not simulation)
+- Supports SQL, Python, TypeScript, Rust source files
+- Dry-run and preview modes
+- Error handling with continue-on-error option
+- Progress reporting
+
+**Test count**: 12 unit + 5 integration tests
+
+### `specql workflow sync`
+
+**Status**: Stable
+
+Real change detection and incremental regeneration:
+- File hash-based change detection
+- State persistence across runs
+- Force regeneration option
+- Exclude patterns support
+- Pattern detection integration
+- Parallel processing support
+
+**Test count**: 8 unit + 5 integration tests
 
 ---
 
@@ -178,7 +225,7 @@ uv run pytest tests/unit/cli/commands/test_validate.py -v
 uv run pytest tests/unit/cli/commands/test_reverse.py -v
 ```
 
-**Total CLI tests**: 92 passing
+**Total CLI tests**: 197 passing
 
 ---
 

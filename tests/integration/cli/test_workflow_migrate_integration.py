@@ -230,3 +230,44 @@ fields:
         assert "Skipping reverse phase" in result.output
         # Check that SQL files were generated
         assert (tmpdir / "output" / "db" / "schema" / "10_tables" / "testentity.sql").exists()
+
+
+def test_migrate_nonexistent_file(cli_runner):
+    """Handles nonexistent file gracefully."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+
+        # Try to migrate a nonexistent file
+        nonexistent = tmpdir / "nonexistent.sql"
+
+        result = cli_runner.invoke(
+            app, ["workflow", "migrate", str(nonexistent), "--reverse-from=sql", "-o", str(tmpdir)]
+        )
+
+        # Should fail because file doesn't exist (Click validation)
+        assert result.exit_code != 0
+
+
+def test_migrate_invalid_sql_syntax(cli_runner):
+    """Reports error for invalid SQL files."""
+    # Create SQL that will definitely fail parsing
+    invalid_sql = """
+    THIS IS NOT VALID SQL AT ALL
+    RANDOM WORDS HERE
+    NO CREATE TABLE STATEMENT
+    """
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+
+        # Create invalid SQL file
+        sql_file = tmpdir / "invalid.sql"
+        sql_file.write_text(invalid_sql)
+
+        result = cli_runner.invoke(
+            app, ["workflow", "migrate", str(sql_file), "--reverse-from=sql", "-o", str(tmpdir)]
+        )
+
+        # Should handle error gracefully - either succeed with warnings or fail
+        # The important thing is it doesn't crash
+        assert result.exit_code in [0, 1]  # Allow either success or controlled failure

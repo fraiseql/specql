@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING
 
 import click
 
-from cli.base import common_options
 from cli.utils.error_handler import handle_cli_error
 from cli.utils.output import output as cli_output
 
@@ -109,10 +108,10 @@ def sql(
 
         # Import parsers (lazy to handle optional dependencies)
         try:
-            from reverse_engineering.table_parser import SQLTableParser
-            from reverse_engineering.pattern_orchestrator import PatternDetectionOrchestrator
-            from reverse_engineering.fk_detector import ForeignKeyDetector
             from reverse_engineering.entity_generator import EntityYAMLGenerator
+            from reverse_engineering.fk_detector import ForeignKeyDetector
+            from reverse_engineering.pattern_orchestrator import PatternDetectionOrchestrator
+            from reverse_engineering.table_parser import SQLTableParser
         except ImportError as e:
             cli_output.error(f"Missing reverse engineering dependency: {e}")
             cli_output.info("Install with: pip install specql[reverse]")
@@ -145,7 +144,7 @@ def sql(
         cli_output_dir.mkdir(parents=True, exist_ok=True)
 
         # Collect all statements from all files
-        all_tables: list[tuple[str, "ParsedTable"]] = []  # (source_file, parsed_table)
+        all_tables: list[tuple[str, ParsedTable]] = []  # (source_file, parsed_table)
         all_functions: list[tuple[str, str]] = []  # (source_file, function_sql)
         all_alter_statements: list[str] = []
         skipped_count = 0

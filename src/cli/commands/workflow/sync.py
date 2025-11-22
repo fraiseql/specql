@@ -32,7 +32,7 @@ def load_sync_state(directory: Path) -> dict:
     if state_path.exists():
         try:
             return json.loads(state_path.read_text())
-        except (json.JSONDecodeError, IOError):
+        except (OSError, json.JSONDecodeError):
             # If state file is corrupted, start fresh
             return {}
     return {}
@@ -43,7 +43,7 @@ def save_sync_state(directory: Path, state: dict):
     state_path = directory / STATE_FILE
     try:
         state_path.write_text(json.dumps(state, indent=2))
-    except IOError:
+    except OSError:
         # If we can't save state, continue but warn
         output.warning(f"Could not save sync state to {state_path}")
 

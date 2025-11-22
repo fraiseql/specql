@@ -199,3 +199,39 @@ fields:
             # Verify file was modified
             updated = yaml.safe_load(Path(f.name).read_text())
             assert "tenant_id" in updated["fields"]
+
+    def test_detect_no_patterns_found(self):
+        """Returns empty result when no patterns detected."""
+        yaml_content = """
+entity: SimpleEntity
+schema: test
+fields:
+  id: serial
+  name: text
+"""
+        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as f:
+            f.write(yaml_content.encode())
+            f.flush()
+
+            result = self.runner.invoke(app, ["patterns", "detect", f.name])
+
+            assert result.exit_code == 0
+            # Should indicate no patterns found
+            assert "no patterns" in result.output.lower() or "0 patterns" in result.output
+
+    def test_apply_unknown_pattern_fails(self):
+        """Applying unknown pattern shows error."""
+        yaml_content = """
+entity: Test
+schema: test
+fields:
+  id: serial
+"""
+        with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as f:
+            f.write(yaml_content.encode())
+            f.flush()
+
+            result = self.runner.invoke(app, ["patterns", "apply", "unknown-pattern", f.name])
+
+            assert result.exit_code != 0
+            assert "unknown" in result.output.lower() or "not found" in result.output.lower()
