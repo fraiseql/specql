@@ -263,7 +263,7 @@ def test_reverse_sql_creates_output_directory(cli_runner, sample_sql_ddl):
                         gen_instance.generate.return_value = "entity: Contact\nschema: crm\n"
                         MockGen.return_value = gen_instance
 
-                        result = cli_runner.invoke(
+                        cli_runner.invoke(
                             app, ["reverse", "sql", "tables.sql", "-o", "new_output/"]
                         )
 

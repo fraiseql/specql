@@ -5,8 +5,9 @@ import textwrap
 from pathlib import Path
 
 import pytest
-from cli.confiture_extensions import specql
 from click.testing import CliRunner
+
+from cli.main import app
 
 
 @pytest.fixture
@@ -37,7 +38,7 @@ def test_generated_yaml_passes_validation(cli_runner):
         # Generate YAML
         output_dir = Path(tmpdir) / "entities"
         result = cli_runner.invoke(
-            specql, ["reverse-python", str(source_file), "--output-dir", str(output_dir)]
+            app, ["reverse", "python", str(source_file), "-o", str(output_dir)]
         )
         assert result.exit_code == 0
 
@@ -46,7 +47,7 @@ def test_generated_yaml_passes_validation(cli_runner):
         assert len(yaml_files) == 1
 
         # Should pass validation
-        result = cli_runner.invoke(specql, ["validate"] + [str(f) for f in yaml_files])
+        result = cli_runner.invoke(app, ["validate"] + [str(f) for f in yaml_files])
         assert result.exit_code == 0
 
 
@@ -67,18 +68,18 @@ def test_generated_yaml_with_simple_actions(cli_runner):
 
         output_dir = Path(tmpdir) / "entities"
         result = cli_runner.invoke(
-            specql, ["reverse-python", str(source_file), "--output-dir", str(output_dir)]
+            app, ["reverse", "python", str(source_file), "-o", str(output_dir)]
         )
         assert result.exit_code == 0
 
         yaml_files = list(output_dir.glob("*.yaml"))
-        result = cli_runner.invoke(specql, ["validate"] + [str(f) for f in yaml_files])
+        result = cli_runner.invoke(app, ["validate"] + [str(f) for f in yaml_files])
 
         # Should pass validation
         assert result.exit_code == 0
 
         yaml_files = list(output_dir.glob("*.yaml"))
-        result = cli_runner.invoke(specql, ["validate"] + [str(f) for f in yaml_files])
+        result = cli_runner.invoke(app, ["validate"] + [str(f) for f in yaml_files])
 
         # Should pass validation
         assert result.exit_code == 0

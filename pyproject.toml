@@ -67,7 +67,7 @@ python_functions = "test_*"
 addopts = "-v --tb=short --strict-markers"
 pythonpath = ["src"]
 # Exclude archived/deprecated tests
-norecursedirs = ["archived", ".git", "__pycache__"]
+norecursedirs = ["archived", "archived_legacy_cli", ".git", "__pycache__"]
 markers = [
     "unit: Unit tests (fast, isolated)",
     "integration: Integration tests (slower, requires DB)",
