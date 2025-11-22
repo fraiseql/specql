@@ -1,8 +1,9 @@
 """Integration test with actual PrintOptim manufacturer table."""
 
+import yaml
 from click.testing import CliRunner
 
-from cli.reverse_schema import reverse_schema
+from cli.main import app
 
 
 class TestPrintOptimMigration:
@@ -48,11 +49,12 @@ class TestPrintOptimMigration:
         output_dir = tmp_path / "entities"
 
         runner = CliRunner()
-        result = runner.invoke(reverse_schema, [str(sql_file), "--output-dir", str(output_dir)])
+        result = runner.invoke(app, ["reverse", "sql", str(sql_file), "-o", str(output_dir)])
 
         assert result.exit_code == 0
 
-        yaml_path = output_dir / "catalog" / "manufacturer.yaml"
+        # The entity should be named "manufacturer" (lowercased from tb_manufacturer)
+        yaml_path = output_dir / "manufacturer.yaml"
         assert yaml_path.exists()
 
         yaml_content = yaml_path.read_text()
