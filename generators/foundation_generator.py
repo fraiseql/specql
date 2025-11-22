@@ -1,7 +1,6 @@
 # Foundation SQL Generator
 """Generate foundation SQL from project configuration."""
 
-from pathlib import Path
 from core.project_config import ProjectConfig
 
 
@@ -11,7 +10,7 @@ class FoundationGenerator:
     def generate(self, config: ProjectConfig) -> str:
         """Generate foundation SQL with extensions and schemas."""
         lines = [
-            f"-- Auto-generated from project.yaml",
+            "-- Auto-generated from project.yaml",
             f"-- Project: {config.name}",
             "",
         ]

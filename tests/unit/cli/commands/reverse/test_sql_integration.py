@@ -436,7 +436,6 @@ def test_reverse_sql_hierarchical_numbering(cli_runner):
         assert result.exit_code == 0
 
         # Debug: list all files created
-        import glob
 
         all_files = list(Path("out").rglob("*.yaml"))
         print(f"Created files: {[str(f) for f in all_files]}")

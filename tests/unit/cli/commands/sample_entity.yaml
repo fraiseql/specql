@@ -5,7 +5,7 @@ fields:
   first_name: text
   status: enum(lead, qualified, customer)
 actions:
-  - name: qualify_lead
-    steps:
-      - validate: status = 'lead'
-      - update: Contact SET status = 'qualified'
+- name: qualify_lead
+  steps:
+  - validate: status = 'lead'
+  - update: Contact SET status = 'qualified'

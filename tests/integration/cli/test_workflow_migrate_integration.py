@@ -72,7 +72,9 @@ def test_migrate_sql_files_generates_yaml(cli_runner, sample_sql_file):
         assert len(contact_files) > 0, f"Expected contact.yaml, found: {yaml_files}"
         # Check that SQL files were generated (in db/schema structure)
         output_sql = list((tmpdir / "output").glob("**/contact.sql"))
-        assert len(output_sql) > 0, f"Expected contact.sql in output, found: {list((tmpdir / 'output').glob('**/*.sql'))}"
+        assert len(output_sql) > 0, (
+            f"Expected contact.sql in output, found: {list((tmpdir / 'output').glob('**/*.sql'))}"
+        )
 
 
 def test_migrate_python_django_models(cli_runner):
@@ -172,7 +174,9 @@ def test_migrate_validate_only_stops_early(cli_runner, sample_sql_file):
         # Should not reach generation phase
         assert "Phase 3: Code generation" not in result.output
         # Output directory should not exist OR should only contain entities, not output
-        output_sql = list((tmpdir / "output").glob("**/*.sql")) if (tmpdir / "output").exists() else []
+        output_sql = (
+            list((tmpdir / "output").glob("**/*.sql")) if (tmpdir / "output").exists() else []
+        )
         assert len(output_sql) == 0, "Should not generate SQL in validate-only mode"
 
 
@@ -209,8 +213,12 @@ def test_migrate_continue_on_error_proceeds(cli_runner):
         # Should succeed
         assert result.exit_code == 0
         # Check that files were generated (search recursively)
-        output_sql = list((tmpdir / "output").glob("**/valid*.sql")) if (tmpdir / "output").exists() else []
-        assert len(output_sql) > 0, f"Expected SQL output, found: {list((tmpdir / 'output').glob('**/*.sql')) if (tmpdir / 'output').exists() else []}"
+        output_sql = (
+            list((tmpdir / "output").glob("**/valid*.sql")) if (tmpdir / "output").exists() else []
+        )
+        assert len(output_sql) > 0, (
+            f"Expected SQL output, found: {list((tmpdir / 'output').glob('**/*.sql')) if (tmpdir / 'output').exists() else []}"
+        )
 
 
 def test_migrate_generate_only_uses_existing_yaml(cli_runner):

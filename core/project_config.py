@@ -2,8 +2,8 @@
 """Project-level configuration for SpecQL projects."""
 
 from dataclasses import dataclass, field
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import yaml

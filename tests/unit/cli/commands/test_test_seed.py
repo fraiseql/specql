@@ -2,7 +2,7 @@
 
 import pytest
 from click.testing import CliRunner
-from pathlib import Path
+
 from cli.main import app
 
 

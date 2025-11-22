@@ -49,7 +49,8 @@ class PipelineOrchestrator:
                     yaml_files = list(output_dir.glob("**/*.yaml"))
                     # Filter out project.yaml and registry files
                     entity_files = [
-                        f for f in yaml_files
+                        f
+                        for f in yaml_files
                         if f.name != "project.yaml"
                         and "registry" not in f.parts
                         and "domain_registry" not in f.name

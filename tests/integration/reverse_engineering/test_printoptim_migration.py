@@ -55,7 +55,11 @@ class TestPrintOptimMigration:
         # The entity should be named "manufacturer" (lowercased from tb_manufacturer)
         # Files are now generated in entities/ subdirectory with hierarchical paths
         yaml_files = list(output_dir.glob("**/*.yaml"))
-        manufacturer_files = [f for f in yaml_files if "manufacturer" in f.name.lower() and "project" not in f.name.lower()]
+        manufacturer_files = [
+            f
+            for f in yaml_files
+            if "manufacturer" in f.name.lower() and "project" not in f.name.lower()
+        ]
         assert len(manufacturer_files) > 0, f"Expected manufacturer.yaml, found: {yaml_files}"
         yaml_path = manufacturer_files[0]
 
