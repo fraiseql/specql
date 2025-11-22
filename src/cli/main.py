@@ -84,6 +84,11 @@ def register_commands():
 
     app.add_command(docs)
 
+    # Phase 8: Test command group
+    from cli.commands.test import test
+
+    app.add_command(test)
+
 
 # Register commands on import
 register_commands()
